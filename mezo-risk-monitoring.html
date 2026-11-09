@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mezo Risk Monitoring & Opportunities Alerts</title>
+<style>
+:root {
+  --bg: #0b0f14;
+  --surface: #121820;
+  --surface2: #1a2330;
+  --border: #243044;
+  --text: #e8eef7;
+  --muted: #8b9bb4;
+  --accent: #f7931a;
+  --accent2: #3b82f6;
+  --green: #22c55e;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --purple: #a855f7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+header {
+  background: linear-gradient(180deg, #151c28 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.logo-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #ff6b00);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #111;
+}
+h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+.subtitle { color: var(--muted); font-size: 0.85rem; }
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.75rem 1.5rem 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  overflow-x: auto;
+}
+.tab {
+  padding: 0.75rem 1.1rem;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+main { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+.panel { display: none; }
+.panel.active { display: block; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+}
+.card-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.card-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+th, td {
+  padding: 0.7rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: var(--surface2);
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.badge-risk { background: rgba(239,68,68,0.15); color: var(--red); }
+.badge-ok { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge-warn { background: rgba(234,179,8,0.15); color: var(--yellow); }
+.badge-info { background: rgba(59,130,246,0.15); color: var(--accent2); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; }
+a { color: var(--accent2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.btn {
+  background: var(--accent);
+  color: #111;
+  border: none;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  align-items: flex-end;
+}
+label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.25rem; }
+input, select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  min-width: 180px;
+}
+input:focus, select:focus { outline: 1px solid var(--accent); }
+.alert-item {
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--red);
+  background: var(--surface);
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 0.6rem;
+}
+.alert-item.warn { border-left-color: var(--yellow); }
+.alert-item.info { border-left-color: var(--accent2); }
+.alert-time { font-size: 0.75rem; color: var(--muted); }
+.empty {
+  text-align: center;
+  padding: 2.5rem;
+  color: var(--muted);
+}
+.footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
+.contracts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+.contract-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+.contract-name { font-weight: 600; margin-bottom: 0.25rem; }
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.flex { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-mark">M</div>
+    <div>
+      <h1>Mezo Risk Monitoring</h1>
+    </div>
+  </div>
+  <div class="status-bar">
+    <span class="live-dot"></span>
+    <span id="liveStatus">Connecting…</span>
+    <span id="blockInfo">—</span>
+    <button class="btn btn-secondary" onclick="refreshAll()" id="refreshBtn">Refresh</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="vebtc">veBTC Risk</button>
+  <button class="tab" data-tab="bridge">Bridge Activity</button>
+  <button class="tab" data-tab="lending">Lending / MUSD</button>
+  <button class="tab" data-tab="alerts">Alert Rules</button>
+  <button class="tab" data-tab="status">Status</button>
+</nav>
+
+<main>
+  <section id="vebtc" class="panel active">
+    <div class="grid">
+      <div class="card"><div class="card-label">veBTC Address</div><div class="card-value mono" style="font-size:0.95rem" id="veAddr">0x7D807e9CE1ef73048FEe9A4214e75e894ea25914</div></div>
+      <div class="card"><div class="card-label">Last Checked</div><div class="card-value" id="veChecked" style="font-size:1rem">—</div></div>
+    </div>
+    <div class="section-title">Watch Position / Address</div>
+    <div class="form-row">
+      <div>
+        <label>Address or Token ID to watch</label>
+        <input type="text" id="watchAddr" placeholder="0x… or tokenId">
+      </div>
+      <button class="btn" onclick="addWatch()">Add Watch</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Target</th><th>Type</th><th>Added</th><th>Status</th><th></th></tr></thead>
+        <tbody id="watchTable"><tr><td colspan="5" class="empty">No watches yet</td></tr></tbody>
+      </table>
+    </div>
+    <div class="section-title">Risk Criteria (veBTC)</div>
+    <div class="card">
+      <ul style="padding-left:1.2rem;color:var(--muted);font-size:0.9rem">
+        <li>Abnormal transfers of veBTC NFTs / positions</li>
+        <li>Batch movement of multiple positions in a short window</li>
+        <li>Ownership changes that do not match normal user patterns</li>
+        <li>Unusual interactions with trusted forwarder / library calls</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="bridge" class="panel">
+    <div class="grid">
+      <div class="card"><div class="card-label">Mezo Bridge</div><div class="card-value mono" style="font-size:0.85rem">0xF6680EA3b480cA2b72D96ea13cCAF2cFd8e6908c</div></div>
+      <div class="card"><div class="card-label">Outflow Threshold</div><div class="card-value" id="brThresh">2 BTC</div><div class="card-sub">configurable alert</div></div>
+    </div>
+    <div class="section-title">Bridge Risk Rules</div>
+    <div class="form-row">
+      <div>
+        <label>Alert if outflow exceeds (BTC)</label>
+        <input type="number" id="outflowThresh" value="2" step="0.1" min="0.01">
+      </div>
+      <div>
+        <label>Time window (minutes)</label>
+        <input type="number" id="outflowWindow" value="15" min="1">
+      </div>
+      <button class="btn" onclick="saveBridgeRules()">Save Rules</button>
+    </div>
+    <div class="card" style="margin-top:1rem">
+      <p style="color:var(--muted);font-size:0.9rem">Monitors large or clustered bridge withdrawals. Rapid multi-BTC outflows in a short window are high-priority risk signals (as seen in the October 5, 2026 incident).</p>
+    </div>
+  </section>
+
+  <section id="lending" class="panel">
+    <div class="grid">
+      <div class="card"><div class="card-label">MUSD</div><div class="card-value mono" style="font-size:0.85rem">0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186</div></div>
+      <div class="card"><div class="card-label">Active Pool</div><div class="card-value mono" style="font-size:0.85rem">0x3012C2fE1240e3754E5C200A0946bb0E07474876</div></div>
+      <div class="card"><div class="card-label">Stability Pool</div><div class="card-value mono" style="font-size:0.85rem">0x73245Eff485aB3AAc1158B3c4d8f4b23797B0e32</div></div>
+      <div class="card"><div class="card-label">Trove Manager</div><div class="card-value mono" style="font-size:0.85rem">0x94AfB503dBca74aC3E4929BACEeDfCe19B93c193</div></div>
+    </div>
+    <div class="grid" style="margin-top:1rem">
+      <div class="card"><div class="card-label">Active Pool BTC</div><div class="card-value" id="lendActive">—</div></div>
+      <div class="card"><div class="card-label">Stability Pool BTC</div><div class="card-value" id="lendStab">—</div></div>
+      <div class="card"><div class="card-label">MUSD totalSupply</div><div class="card-value" id="lendMusd">—</div></div>
+      <div class="card"><div class="card-label">Min CR</div><div class="card-value">110%</div><div class="card-sub">liquidation threshold</div></div>
+    </div>
+    <div class="section-title">Liquidation / Health Alerts</div>
+    <div class="form-row">
+      <div>
+        <label>Watch borrower address</label>
+        <input type="text" id="borrowerAddr" placeholder="0x…">
+      </div>
+      <div>
+        <label>LTV / CR threshold (%)</label>
+        <input type="number" id="crThresh" value="130" min="110">
+      </div>
+      <button class="btn" onclick="addBorrowerWatch()">Add Health Watch</button>
+    </div>
+    <div id="borrowerWatches" class="empty">No borrower watches configured</div>
+  </section>
+
+  <section id="alerts" class="panel">
+    <div class="section-title">Configured Alert Rules</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rule</th><th>Category</th><th>Threshold</th><th>Channel</th><th>Status</th></tr></thead>
+        <tbody id="rulesTable">
+          <tr><td>veBTC multi-position transfer</td><td><span class="badge badge-risk">Risk</span></td><td>≥ 3 positions / 10 min</td><td>Telegram + Email</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td>Bridge large outflow</td><td><span class="badge badge-risk">Risk</span></td><td>≥ 2 BTC / 15 min</td><td>Telegram + Email</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td>Core contract anomalous volume</td><td><span class="badge badge-warn">Risk</span></td><td>Spike vs 24h baseline</td><td>Telegram</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td>LTV / health factor breach</td><td><span class="badge badge-risk">Risk</span></td><td>User-defined CR</td><td>Telegram + Email</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td>Utilization / rate change</td><td><span class="badge badge-info">Opportunity</span></td><td>> 5% move</td><td>Telegram</td><td><span class="badge badge-ok">Active</span></td></tr>
+          <tr><td>New incentive / capacity</td><td><span class="badge badge-info">Opportunity</span></td><td>Any new gauge or vault</td><td>Telegram</td><td><span class="badge badge-warn">Template</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section-title">Delivery Channels</div>
+    <div class="form-row">
+      <div>
+        <label>Telegram Chat ID / Bot</label>
+        <input type="text" id="tgChat" placeholder="@username or chat_id">
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" id="alertEmail" placeholder="you@example.com">
+      </div>
+      <button class="btn" onclick="saveChannels()">Save Channels</button>
+    </div>
+    <div class="card" style="margin-top:1rem">
+      <p style="color:var(--muted);font-size:0.9rem">This prototype dashboard stores rules locally. The final Alerts system deployment would run a backend worker that continuously indexes Mezo events and pushes to Telegram / email when rules fire.</p>
+    </div>
+  </section>
+
+  <section id="status" class="panel">
+    <div class="grid">
+      <div class="card"><div class="card-label">RPC Endpoint</div><div class="card-value" style="font-size:0.95rem" id="stRpc">—</div></div>
+      <div class="card"><div class="card-label">Last Successful Poll</div><div class="card-value" style="font-size:1rem" id="stLast">—</div></div>
+      <div class="card"><div class="card-label">Poll Interval</div><div class="card-value">30s</div></div>
+      <div class="card"><div class="card-label">Errors (session)</div><div class="card-value" id="stErr">0</div></div>
+    </div>
+    <div class="section-title">RPC Providers</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Provider</th><th>HTTPS</th><th>Status</th></tr></thead>
+        <tbody id="rpcTable"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+</footer>
+
+<script>
+const CONTRACTS = {
+  veBTC: "0x7D807e9CE1ef73048FEe9A4214e75e894ea25914",
+  bridge: "0xF6680EA3b480cA2b72D96ea13cCAF2cFd8e6908c",
+  musd: "0xdD468A1DDc392dcdbEf6db6e34E89AA338F9F186",
+  activePool: "0x3012C2fE1240e3754E5C200A0946bb0E07474876",
+  stabilityPool: "0x73245Eff485aB3AAc1158B3c4d8f4b23797B0e32",
+  troveManager: "0x94AfB503dBca74aC3E4929BACEeDfCe19B93c193",
+  borrowerOps: "0x44b1bac67dDA612a41a58AAf779143B181dEe031",
+  router: "0x16A76d3cd3C1e3CE843C6680d6B37E9116b5C706",
+  poolFactory: "0x83FE469C636C4081b87bA5b3Ae9991c6Ed104248",
+  musdBtcPool: "0x52e604c44417233b6CcEDDDc0d640A405Caacefb",
+  veBtcVoter: "0x3A4a6919F70e5b0aA32401747C471eCfe2322C1b",
+  rewardsDist: "0x535E01F948458E0b64F9dB2A01Da6F32E240140f"
+};
+
+const RPCS = [
+  { name: "dRPC", url: "https://mezo.drpc.org" },
+  { name: "Boar", url: "https://mezo-mainnet.boar.network" },
+  { name: "Validation Cloud", url: "https://mainnet.mezo.public.validationcloud.io" }
+];
+
+let currentRpc = RPCS[0].url;
+let errorCount = 0;
+let watches = JSON.parse(localStorage.getItem("mezoWatches") || "[]");
+let borrowerWatches = JSON.parse(localStorage.getItem("mezoBorrowers") || "[]");
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.tab).classList.add("active");
+  });
+});
+
+async function rpc(method, params = []) {
+  const body = { jsonrpc: "2.0", method, params, id: Date.now() };
+  const t0 = performance.now();
+  const res = await fetch(currentRpc, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const latency = Math.round(performance.now() - t0);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message || "RPC error");
+  return { result: json.result, latency };
+}
+
+async function tryRpc(method, params = []) {
+  let lastErr;
+  for (const r of RPCS) {
+    try {
+      currentRpc = r.url;
+      return await rpc(method, params);
+    } catch (e) {
+      lastErr = e;
+      errorCount++;
+    }
+  }
+  throw lastErr || new Error("All RPCs failed");
+}
+
+function hexToNumber(hex) {
+  if (!hex || hex === "0x") return 0;
+  return Number(BigInt(hex));
+}
+
+function formatBtc(weiHex) {
+  if (!weiHex) return "—";
+  const wei = BigInt(weiHex);
+  const btc = Number(wei) / 1e18;
+  if (btc >= 1000) return btc.toLocaleString(undefined, { maximumFractionDigits: 2 }) + " BTC";
+  if (btc >= 1) return btc.toFixed(4) + " BTC";
+  if (btc >= 0.0001) return btc.toFixed(6) + " BTC";
+  return btc.toExponential(2) + " BTC";
+}
+
+function formatNum(n) {
+  if (n === undefined || n === null || isNaN(n)) return "—";
+  return n.toLocaleString();
+}
+
+async function getBalance(addr) {
+  const { result } = await tryRpc("eth_getBalance", [addr, "latest"]);
+  return result;
+}
+
+async function getCode(addr) {
+  const { result } = await tryRpc("eth_getCode", [addr, "latest"]);
+  return result;
+}
+
+async function ethCall(to, data) {
+  const { result } = await tryRpc("eth_call", [{ to, data }, "latest"]);
+  return result;
+}
+
+async function refreshAll() {
+  const btn = document.getElementById("refreshBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  document.getElementById("liveStatus").textContent = "Polling…";
+  try {
+    const { result: blockHex } = await tryRpc("eth_blockNumber");
+    const block = hexToNumber(blockHex);
+    document.getElementById("blockInfo").textContent = "Block " + formatNum(block);
+    document.getElementById("stRpc").textContent = currentRpc;
+    document.getElementById("stLast").textContent = new Date().toLocaleString();
+    document.getElementById("stErr").textContent = errorCount;
+    document.getElementById("liveStatus").textContent = "Live";
+    document.getElementById("veChecked").textContent = new Date().toLocaleTimeString();
+
+    const [activeBal, stabBal, musdSupply] = await Promise.all([
+      getBalance(CONTRACTS.activePool),
+      getBalance(CONTRACTS.stabilityPool),
+      ethCall(CONTRACTS.musd, "0x18160ddd").catch(() => "0x0")
+    ]);
+
+    document.getElementById("lendActive").textContent = formatBtc(activeBal);
+    document.getElementById("lendStab").textContent = formatBtc(stabBal);
+
+    let musdFmt = "—";
+    if (musdSupply && musdSupply !== "0x" && musdSupply !== "0x0") {
+      const n = Number(BigInt(musdSupply)) / 1e18;
+      musdFmt = n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    }
+    document.getElementById("lendMusd").textContent = musdFmt;
+
+    renderRpcStatus();
+    renderWatches();
+    renderBorrowers();
+  } catch (e) {
+    document.getElementById("liveStatus").textContent = "Error";
+    errorCount++;
+    document.getElementById("stErr").textContent = errorCount;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Refresh";
+  }
+}
+
+function renderRpcStatus() {
+  document.getElementById("rpcTable").innerHTML = RPCS.map(r =>
+    '<tr><td>' + r.name + '</td><td class="mono">' + r.url + '</td><td><span class="badge ' + (r.url === currentRpc ? 'badge-ok' : 'badge-info') + '">' + (r.url === currentRpc ? 'Active' : 'Standby') + '</span></td></tr>'
+  ).join("");
+}
+
+function addWatch() {
+  const v = document.getElementById("watchAddr").value.trim();
+  if (!v) return;
+  watches.push({ target: v, type: v.startsWith("0x") && v.length === 42 ? "address" : "tokenId", added: new Date().toISOString() });
+  localStorage.setItem("mezoWatches", JSON.stringify(watches));
+  document.getElementById("watchAddr").value = "";
+  renderWatches();
+}
+
+function removeWatch(i) {
+  watches.splice(i, 1);
+  localStorage.setItem("mezoWatches", JSON.stringify(watches));
+  renderWatches();
+}
+
+function renderWatches() {
+  const tbody = document.getElementById("watchTable");
+  if (!watches.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">No watches yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = watches.map((w, i) =>
+    '<tr><td class="mono">' + w.target + '</td><td>' + w.type + '</td><td>' + new Date(w.added).toLocaleString() + '</td><td><span class="badge badge-ok">Watching</span></td><td><button class="btn btn-secondary" onclick="removeWatch(' + i + ')">Remove</button></td></tr>'
+  ).join("");
+}
+
+function addBorrowerWatch() {
+  const a = document.getElementById("borrowerAddr").value.trim();
+  const t = document.getElementById("crThresh").value;
+  if (!a) return;
+  borrowerWatches.push({ address: a, threshold: t, added: new Date().toISOString() });
+  localStorage.setItem("mezoBorrowers", JSON.stringify(borrowerWatches));
+  document.getElementById("borrowerAddr").value = "";
+  renderBorrowers();
+}
+
+function renderBorrowers() {
+  const el = document.getElementById("borrowerWatches");
+  if (!borrowerWatches.length) {
+    el.className = "empty";
+    el.textContent = "No borrower watches configured";
+    return;
+  }
+  el.className = "";
+  el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Address</th><th>CR Threshold</th><th>Added</th></tr></thead><tbody>' +
+    borrowerWatches.map(b => '<tr><td class="mono">' + b.address + '</td><td>' + b.threshold + '%</td><td>' + new Date(b.added).toLocaleString() + '</td></tr>').join("") +
+    '</tbody></table></div>';
+}
+
+function saveBridgeRules() {
+  const t = document.getElementById("outflowThresh").value;
+  const w = document.getElementById("outflowWindow").value;
+  localStorage.setItem("mezoBridgeRules", JSON.stringify({ thresh: t, window: w }));
+  document.getElementById("brThresh").textContent = t + " BTC";
+  alert("Bridge rules saved locally: " + t + " BTC / " + w + " min");
+}
+
+function saveChannels() {
+  localStorage.setItem("mezoChannels", JSON.stringify({
+    tg: document.getElementById("tgChat").value,
+    email: document.getElementById("alertEmail").value
+  }));
+  alert("Channels saved locally");
+}
+
+(function init() {
+  const saved = JSON.parse(localStorage.getItem("mezoBridgeRules") || "null");
+  if (saved) {
+    document.getElementById("outflowThresh").value = saved.thresh;
+    document.getElementById("outflowWindow").value = saved.window;
+    document.getElementById("brThresh").textContent = saved.thresh + " BTC";
+  }
+  const ch = JSON.parse(localStorage.getItem("mezoChannels") || "null");
+  if (ch) {
+    document.getElementById("tgChat").value = ch.tg || "";
+    document.getElementById("alertEmail").value = ch.email || "";
+  }
+  renderWatches();
+  renderBorrowers();
+  renderRpcStatus();
+  refreshAll();
+  setInterval(refreshAll, 30000);
+})();
+</script>
+</body>
+</html>
